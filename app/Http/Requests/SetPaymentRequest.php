@@ -50,6 +50,7 @@ class SetPaymentRequest extends FormRequest
                     Payment::$paid_cash,
                     Payment::$paid_deposit,
                     Payment::$paid_,
+                    Payment::$disability,
                 ]);
                 $amountRules = ['required', 'integer', 'min:1'];
             }

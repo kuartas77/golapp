@@ -12,6 +12,7 @@ export default function useInscriptionConfig(
     canCreateInvoice = null,
     canAddCustomCharges = null,
     canAdministerInscriptions = canEditInscriptions,
+    canEditPayments = null,
 ) {
     const router = useRouter()
     const auth = useAuthUser()
@@ -20,6 +21,8 @@ export default function useInscriptionConfig(
     const isCreateModalOpen = ref(false)
     const selectedAttendanceQrCode = ref(null)
     const selectedCustomChargeInscriptionId = ref(null)
+    const selectedPaymentInscriptionId = ref(null)
+    const selectedPaymentUniqueCode = ref(null)
     const disableUrlSelected = ref(null)
     const globalError = ref('')
     let nameFilterTimeout = null
@@ -34,6 +37,9 @@ export default function useInscriptionConfig(
 
         return Boolean(canEditInscriptions?.value) && year >= currentYear
     })
+    const canEditPaymentSelectedYear = computed(() => (
+        Boolean(canEditPayments?.value) && Number(selectedYear?.value ?? currentYear) >= currentYear
+    ))
     const canShowCreateInvoice = computed(() => {
         return canCreateInvoice === null
             ? canManageSelectedYear.value
@@ -139,6 +145,9 @@ export default function useInscriptionConfig(
                 const addChargesAction = Boolean(canAddCustomCharges?.value)
                     ? `<li><button class="dropdown-item" data-item-id="${row.id}" data-type="custom-charges" type="button"><i class="fa fa-plus-circle fa-width-auto me-2" data-item-id="${row.id}" data-type="custom-charges"></i>Agregar cargos</button></li>`
                     : ''
+                const editPaymentsAction = canEditPaymentSelectedYear.value
+                    ? `<li><button class="dropdown-item" data-item-id="${row.id}" data-item-code="${row.unique_code}" data-type="payments" type="button"><i class="fa fa-money-bill-wave fa-width-auto me-2" data-item-id="${row.id}" data-item-code="${row.unique_code}" data-type="payments"></i>Modificar mensualidades</button></li>`
+                    : ''
 
                 return `
                 <div class="d-inline-flex align-items-center gap-1 text-nowrap">
@@ -186,6 +195,8 @@ export default function useInscriptionConfig(
                             </li>
 
                             ${addChargesAction}
+
+                            ${editPaymentsAction}
 
                             ${manageActions}
                         </ul>
@@ -314,6 +325,10 @@ export default function useInscriptionConfig(
             case 'custom-charges':
                 selectedCustomChargeInscriptionId.value = Number(itemId)
                 break;
+            case 'payments':
+                selectedPaymentInscriptionId.value = Number(itemId)
+                selectedPaymentUniqueCode.value = e.target.dataset.itemCode
+                break;
             case 'disable':
                 disableUrlSelected.value = itemId
                 confirmDisable()
@@ -329,6 +344,10 @@ export default function useInscriptionConfig(
         isCreateModalOpen.value = false
         disableUrlSelected.value = null
         selectedCustomChargeInscriptionId.value = null
+        selectedPaymentInscriptionId.value = null
+        selectedPaymentUniqueCode.value = null
+        selectedPaymentInscriptionId.value = null
+        selectedPaymentUniqueCode.value = null
     }
 
     const onAttendanceQrModalToggle = (isOpen) => {
@@ -394,6 +413,8 @@ export default function useInscriptionConfig(
         isCreateModalOpen,
         selectedAttendanceQrCode,
         selectedCustomChargeInscriptionId,
+        selectedPaymentInscriptionId,
+        selectedPaymentUniqueCode,
         triggerCreateModal,
         onGroupFilterChange,
         onCategoryFilterChange,

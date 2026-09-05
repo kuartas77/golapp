@@ -95,7 +95,7 @@ class PaymentMutationService
             ]);
         }
 
-        if (! in_array($targetStatus, [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_], true)) {
+        if (! in_array($targetStatus, [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_, Payment::$disability], true)) {
             throw ValidationException::withMessages([
                 $column => ['El estado de destino no está permitido para el auxiliar.'],
             ]);

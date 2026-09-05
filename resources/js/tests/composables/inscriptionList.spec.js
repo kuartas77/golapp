@@ -27,6 +27,7 @@ const mountComposable = ({
     canManage = true,
     canCreateInvoice = null,
     canAddCustomCharges = null,
+    canEditPayments = null,
 } = {}) => mount(defineComponent({
     setup() {
         return useInscriptionConfig(
@@ -36,6 +37,7 @@ const mountComposable = ({
             canCreateInvoice === null ? null : ref(canCreateInvoice),
             canAddCustomCharges === null ? null : ref(canAddCustomCharges),
             ref(canManage),
+            canEditPayments === null ? null : ref(canEditPayments),
         );
     },
     template: '<div />',
@@ -121,6 +123,25 @@ describe('inscription list states', () => {
         expect(html).not.toContain('QR asistencia');
 
         wrapper.unmount();
+    });
+
+    it('renders payment editing only when the payment permission is enabled', () => {
+        const allowedWrapper = mountComposable({ canEditPayments: true });
+        const actionsColumn = allowedWrapper.vm.options.columns.at(-1);
+        const row = {
+            id: 1,
+            unique_code: 'PLY-1',
+            url_destroy: '/inscriptions/1',
+            url_impression: '/export/inscription/1',
+            url_show: '/inscriptions/1',
+        };
+
+        expect(actionsColumn.render(1, 'display', row)).toContain('Modificar mensualidades');
+        allowedWrapper.unmount();
+
+        const deniedWrapper = mountComposable({ canEditPayments: false });
+        expect(deniedWrapper.vm.options.columns.at(-1).render(1, 'display', row)).not.toContain('Modificar mensualidades');
+        deniedWrapper.unmount();
     });
 
     it('removes the global search control while preserving column searching', () => {

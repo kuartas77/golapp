@@ -83,7 +83,7 @@ class PaymentControllerService
             ? [
                 'fields' => Payment::paymentFields(),
                 'source_statuses' => [Payment::$debt, Payment::$paid_],
-                'target_statuses' => [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_],
+                'target_statuses' => [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_, Payment::$disability],
                 'bulk_update' => false,
             ]
             : [

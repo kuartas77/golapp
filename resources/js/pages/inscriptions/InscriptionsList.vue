@@ -168,6 +168,13 @@
         @saved="onCustomChargesSaved"
         @update:model-value="onCustomChargeModalToggle"
     />
+    <EditInscriptionPaymentsModal
+        v-if="selectedPaymentInscriptionId"
+        :model-value="Boolean(selectedPaymentInscriptionId)"
+        :unique-code="selectedPaymentUniqueCode"
+        :year="selectedYear"
+        @update:model-value="onPaymentModalToggle"
+    />
     <PageTutorialOverlay :tutorial="tutorial" />
 
     <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
@@ -188,6 +195,7 @@ import { usePageTitle } from "@/composables/use-meta";
 import { inscriptionsTutorial } from '@/tutorials/inscriptions';
 import ModalInscription from './ModalInscription.vue';
 import AddInscriptionChargesModal from './AddInscriptionChargesModal.vue';
+import EditInscriptionPaymentsModal from './EditInscriptionPaymentsModal.vue';
 import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions';
 
 usePageTitle('Inscripciones')
@@ -225,6 +233,8 @@ const canCreateInvoice = computed(() => canManageSelectedYear.value && auth.hasS
 const canAddCustomCharges = computed(() => auth.hasRole('assistant')
     && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing)
     && Number(selectedYear.value) === Number(currentYear))
+const canEditPayments = computed(() => auth.hasAnyRole(['super-admin', 'school', 'assistant'])
+    && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.payments))
 const inscriptionLimit = ref({
     year: Number(selectedYear.value || currentYear),
     current: 0,
@@ -271,6 +281,8 @@ const {
     isCreateModalOpen,
     selectedAttendanceQrCode,
     selectedCustomChargeInscriptionId,
+    selectedPaymentInscriptionId,
+    selectedPaymentUniqueCode,
     triggerCreateModal,
     onGroupFilterChange,
     onCategoryFilterChange,
@@ -287,10 +299,16 @@ const {
     canCreateInvoice,
     canAddCustomCharges,
     canManageInscriptions,
+    canEditPayments,
 )
 const tutorial = usePageTutorial(inscriptionsTutorial, {
     canExportInscriptions,
 })
+
+const onPaymentModalToggle = (isOpen) => {
+    if (!isOpen) onCancelModal()
+}
+
 
 function resolveDefaultYear() {
     const availableYears = yearOptions.value.map((option) => String(option.value))

@@ -47,6 +47,7 @@ final class AssistantRoleTest extends TestCase
                 Payment::$paid_cash,
                 Payment::$paid_deposit,
                 Payment::$paid_,
+                Payment::$disability,
             ])
             ->assertJsonPath('capabilities.fields.0', 'enrollment');
     }
