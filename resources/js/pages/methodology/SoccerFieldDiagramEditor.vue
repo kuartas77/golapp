@@ -1,24 +1,69 @@
 <template>
-    <div class="field-editor" :class="`field-editor--${size}`">
-        <div class="visual-mode-selector" role="radiogroup" aria-label="Recurso visual de la fase">
-            <button
-                type="button"
-                class="btn btn-sm"
-                :class="visualMode === 'diagram' ? 'btn-primary' : 'btn-outline-primary'"
-                @click="setVisualMode('diagram')"
-            >
-                <i class="fa fa-vector-square fa-width-auto" aria-hidden="true"></i>
-                <span>Diagrama</span>
-            </button>
-            <button
-                type="button"
-                class="btn btn-sm"
-                :class="visualMode === 'image' ? 'btn-primary' : 'btn-outline-primary'"
-                @click="setVisualMode('image')"
-            >
-                <i class="fa fa-image fa-width-auto" aria-hidden="true"></i>
-                <span>Imagen</span>
-            </button>
+    <div
+        class="field-editor"
+        :class="`field-editor--${size}`"
+        tabindex="0"
+        @keydown="handleKeyDown"
+    >
+        <div class="field-top-bar">
+            <!-- Selector de Recurso Visual (Diagrama / Imagen) -->
+            <div class="visual-mode-selector" role="radiogroup" aria-label="Recurso visual de la fase">
+                <button
+                    type="button"
+                    class="btn btn-sm"
+                    :class="visualMode === 'diagram' ? 'btn-primary' : 'btn-outline-primary'"
+                    @click="setVisualMode('diagram')"
+                >
+                    <i class="fa fa-vector-square fa-width-auto" aria-hidden="true"></i>
+                    <span>Diagrama</span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-sm"
+                    :class="visualMode === 'image' ? 'btn-primary' : 'btn-outline-primary'"
+                    @click="setVisualMode('image')"
+                >
+                    <i class="fa fa-image fa-width-auto" aria-hidden="true"></i>
+                    <span>Imagen</span>
+                </button>
+            </div>
+
+            <!-- Acciones de estudio (Deshacer, Rehacer, Limpiar, Exportar PNG) -->
+            <div v-if="visualMode === 'diagram'" class="field-studio-actions" role="toolbar" aria-label="Acciones de estudio">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    :disabled="!canUndo"
+                    title="Deshacer (Ctrl+Z)"
+                    aria-label="Deshacer"
+                    @click="undo"
+                >
+                    <i class="fa fa-rotate-left fa-width-auto" aria-hidden="true"></i>
+                    <span class="d-none d-md-inline">Deshacer</span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    :disabled="!canRedo"
+                    title="Rehacer (Ctrl+Y)"
+                    aria-label="Rehacer"
+                    @click="redo"
+                >
+                    <i class="fa fa-rotate-right fa-width-auto" aria-hidden="true"></i>
+                    <span class="d-none d-md-inline">Rehacer</span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    :disabled="!items.length"
+                    title="Limpiar toda la cancha"
+                    aria-label="Limpiar cancha"
+                    @click="clearAllItems"
+                >
+                    <i class="fa fa-trash fa-width-auto" aria-hidden="true"></i>
+                    <span class="d-none d-md-inline">Limpiar</span>
+                </button>
+            </div>
         </div>
 
         <FileInputImage
@@ -36,175 +81,316 @@
         />
 
         <template v-if="visualMode === 'diagram'">
-        <div class="field-drawing-tools" role="toolbar" aria-label="Herramientas de dibujo libre">
-            <button
-                v-for="mode in interactionModes"
-                :key="mode.key"
-                type="button"
-                class="btn btn-sm"
-                :class="activeMode === mode.key ? 'btn-primary' : 'btn-outline-primary'"
-                @click="setActiveMode(mode.key)"
-            >
-                <i :class="mode.icon" aria-hidden="true"></i>
-                <span>{{ mode.label }}</span>
-            </button>
-        </div>
-
-        <div class="field-mode-help" role="status">
-            {{ activeModeHelp }}
-        </div>
-
-        <div class="field-color-selector" role="radiogroup" aria-label="Color de la figura">
-            <span>Color</span>
-            <label
-                v-for="color in selectableColors"
-                :key="color.key"
-                class="field-color-option"
-                :class="{ 'field-color-option--active': selectedColor === color.key }"
-                :title="color.label"
-            >
-                <input
-                    class="visually-hidden"
-                    type="radio"
-                    :value="color.key"
-                    :checked="selectedColor === color.key"
-                    :aria-label="`Color ${color.label}`"
-                    @change="setSelectedColor(color.key)"
+            <!-- Modos de Interacción (Seleccionar, Lápiz, Borrador) -->
+            <div class="field-drawing-tools" role="toolbar" aria-label="Herramientas de dibujo libre">
+                <button
+                    v-for="mode in interactionModes"
+                    :key="mode.key"
+                    type="button"
+                    class="btn btn-sm"
+                    :class="activeMode === mode.key ? 'btn-primary' : 'btn-outline-primary'"
+                    @click="setActiveMode(mode.key)"
                 >
-                <span :style="{ backgroundColor: color.value }" aria-hidden="true"></span>
-            </label>
-        </div>
+                    <i :class="mode.icon" aria-hidden="true"></i>
+                    <span>{{ mode.label }}</span>
+                </button>
+            </div>
 
-        <div class="field-toolbar" role="toolbar" aria-label="Figuras y simbología de cancha">
-            <button
-                v-for="tool in tools"
-                :key="tool.key"
-                type="button"
-                class="btn btn-primary btn-sm"
-                @click="addItem(tool)"
-            >
-                <i :class="tool.icon" aria-hidden="true"></i>
-                <span>{{ tool.label }}</span>
-            </button>
-            <button type="button" class="btn btn-danger btn-sm" :disabled="!selectedKey" @click="removeSelected">
-                <i class="fa fa-trash fa-width-auto" aria-hidden="true"></i>
-                <span>Eliminar</span>
-            </button>
-        </div>
+            <!-- Ayuda contextual de modo -->
+            <div class="field-mode-help" role="status">
+                {{ activeModeHelp }}
+            </div>
 
-        <label v-if="selectedItemAllowsLabel" class="field-text-input">
-            {{ selectedItem?.type === 'player_token' ? 'Número' : 'Texto' }}
-            <input :value="selectedItem.label" type="text" class="form-control form-control-sm" @input="updateSelectedLabel">
-        </label>
-
-        <div v-if="selectedItemIsRotatable" class="field-arrow-controls" aria-label="Orientación del elemento">
-            <span>Orientación ({{ Math.round(selectedItem.rotation || 0) }}°)</span>
-            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelected(-15)">
-                <i class="fa fa-rotate-left fa-width-auto" aria-hidden="true"></i>
-                <span>-15°</span>
-            </button>
-            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelected(15)">
-                <i class="fa fa-rotate-right fa-width-auto" aria-hidden="true"></i>
-                <span>+15°</span>
-            </button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" @click="resetSelectedRotation">0°</button>
-        </div>
-
-        <svg
-            ref="svgRef"
-            class="soccer-field"
-            viewBox="0 0 100 64"
-            role="img"
-            aria-label="Cancha editable"
-            @pointerdown="handleCanvasPointerDown"
-            @pointermove="moveSelected"
-            @pointerup="stopCanvasInteraction"
-            @pointerleave="stopCanvasInteraction"
-            @pointercancel="stopCanvasInteraction"
-            @lostpointercapture="stopCanvasInteraction"
-            @dragstart.prevent
-        >
-            <rect x="1" y="1" width="98" height="62" rx="1.5" class="field-border" />
-            <line x1="50" y1="1" x2="50" y2="63" class="field-line" />
-            <circle cx="50" cy="32" r="9" class="field-line fill-none" />
-            <circle cx="50" cy="32" r="1" class="field-dot" />
-            <rect x="1" y="18" width="16" height="28" class="field-line fill-none" />
-            <rect x="83" y="18" width="16" height="28" class="field-line fill-none" />
-            <rect x="1" y="24" width="6" height="16" class="field-line fill-none" />
-            <rect x="93" y="24" width="6" height="16" class="field-line fill-none" />
-            <circle cx="11" cy="32" r="1" class="field-dot" />
-            <circle cx="89" cy="32" r="1" class="field-dot" />
-
-            <g
-                v-for="(item, index) in items"
-                :key="itemKey(item, index)"
-                class="field-item"
-                :class="{ selected: itemKey(item, index) === selectedKey, 'field-item--freehand': item.type === 'freehand' }"
-                tabindex="0"
-                @pointerdown.stop="handleItemPointerDown(item, index, $event)"
-                @click.stop="selectItem(item, index)"
-            >
-                <circle v-if="item.type === 'player'" :cx="item.x" :cy="item.y" r="2.8" class="player" :style="{ fill: itemColor(item) }" />
-                <g v-else-if="item.type === 'player_token'">
-                    <circle :cx="item.x" :cy="item.y" r="3.4" class="player-token" :style="{ fill: itemColor(item) }" />
-                    <text :x="item.x" :y="item.y" class="player-token-label">{{ item.label || '1' }}</text>
-                </g>
-                <path v-else-if="item.type === 'cone'" :d="conePath()" :transform="localElementTransform(item)" class="cone" :style="{ fill: itemColor(item) }" />
-                <circle v-else-if="item.type === 'ball'" :cx="item.x" :cy="item.y" r="2.2" class="ball" :style="{ fill: itemColor(item) }" />
-                <circle v-else-if="item.type === 'hoop'" :cx="item.x" :cy="item.y" r="3.2" class="hoop" :style="{ stroke: itemColor(item) }" />
-                <g v-else-if="item.type === 'agility_hurdle'" :transform="localElementTransform(item)">
-                    <path d="M -4.2 2.5 L -2.8 -2.5 L 2.8 -2.5 L 4.2 2.5" class="hurdle-frame" :style="{ stroke: itemColor(item) }" />
-                    <line x1="-3" y1="-0.7" x2="3" y2="-0.7" class="hurdle-bar" :style="{ stroke: itemColor(item) }" />
-                    <line x1="-2.5" y1="2.5" x2="2.5" y2="2.5" class="hurdle-base" :style="{ stroke: itemColor(item) }" />
-                </g>
-                <g v-else-if="item.type === 'stick'" :transform="localElementTransform(item)">
-                    <line x1="-5" y1="0" x2="5" y2="0" class="training-stick" :style="{ stroke: itemColor(item) }" />
-                    <circle cx="-5" cy="0" r="0.8" class="training-stick-end" :style="{ fill: itemColor(item) }" />
-                    <circle cx="5" cy="0" r="0.8" class="training-stick-end" :style="{ fill: itemColor(item) }" />
-                </g>
-                <g v-else-if="item.type === 'arrow'" :transform="localElementTransform(item)">
-                    <line x1="-4" y1="2.4" x2="3.15" y2="-1.9" class="arrow-line" :style="{ stroke: itemColor(item) }" />
-                    <path :d="arrowHeadPath()" class="arrow-head" :style="{ fill: itemColor(item) }" />
-                </g>
-                <g v-else-if="item.type === 'pass'" :transform="localElementTransform(item)">
-                    <line x1="-5" y1="0" x2="4" y2="0" class="tactical-line" :style="{ stroke: itemColor(item) }" />
-                    <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
-                </g>
-                <g v-else-if="item.type === 'dribble'" :transform="localElementTransform(item)">
-                    <polyline :points="dribblePoints()" class="tactical-line" :style="{ stroke: itemColor(item) }" />
-                    <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
-                </g>
-                <g v-else-if="item.type === 'off_ball_run'" :transform="localElementTransform(item)">
-                    <line x1="-5" y1="0" x2="4" y2="0" class="tactical-line tactical-line--dashed" :style="{ stroke: itemColor(item) }" />
-                    <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
-                </g>
-                <g v-else-if="item.type === 'cross'" :transform="localElementTransform(item)">
-                    <path :d="crossPath()" class="tactical-line tactical-line--curve" :style="{ stroke: itemColor(item) }" />
-                    <path :d="crossArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
-                </g>
-                <g v-else-if="item.type === 'xmark'">
-                    <line :x1="item.x - 1.2" :y1="item.y - 1.2" :x2="item.x + 1.2" :y2="item.y + 1.2" class="xmark-line" :style="{ stroke: itemColor(item) }" />
-                    <line :x1="item.x + 1.2" :y1="item.y - 1.2" :x2="item.x - 1.2" :y2="item.y + 1.2" class="xmark-line" :style="{ stroke: itemColor(item) }" />
-                </g>
-                <path v-else-if="item.type === 'freehand'" :d="freehandPath(item)" class="freehand-line" :style="{ stroke: itemColor(item) }" />
-                <text v-else :x="item.x" :y="item.y" class="field-label" :style="{ fill: itemColor(item) }">{{ item.label || 'Texto' }}</text>
-                <g
-                    v-if="itemKey(item, index) === selectedKey && isRotatable(item)"
-                    class="rotation-control"
-                    @pointerdown.stop="startRotation(item, index, $event)"
+            <!-- Selector de Color Oficial -->
+            <div class="field-color-selector" role="radiogroup" aria-label="Color de la figura">
+                <span>Color</span>
+                <label
+                    v-for="color in selectableColors"
+                    :key="color.key"
+                    class="field-color-option"
+                    :class="{ 'field-color-option--active': selectedColor === color.key }"
+                    :title="color.label"
                 >
-                    <line :x1="item.x" :y1="item.y - 7" :x2="item.x" :y2="item.y - 5" class="rotation-line" />
-                    <circle :cx="item.x" :cy="item.y - 7" r="1.5" class="rotation-handle" />
-                    <circle :cx="item.x" :cy="item.y - 7" r="3.2" class="rotation-hit-area" />
-                </g>
-            </g>
-        </svg>
+                    <input
+                        class="visually-hidden"
+                        type="radio"
+                        :value="color.key"
+                        :checked="selectedColor === color.key"
+                        :aria-label="`Color ${color.label}`"
+                        @change="setSelectedColor(color.key)"
+                    >
+                    <span :style="{ backgroundColor: color.value }" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <!-- Barra de Herramientas Tácticas con Presets de Equipos -->
+            <div class="field-toolbar-wrapper">
+                <!-- Presets rápidos para Equipos -->
+                <div class="field-team-presets" role="group" aria-label="Presets rápidos de equipo">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-team-preset btn-team-preset--blue"
+                        title="Añadir jugador numerado de Equipo A"
+                        @click="addTeamPlayer('blue', 'A')"
+                    >
+                        <i class="fa fa-user fa-width-auto" aria-hidden="true"></i>
+                        <span>+ Equipo A ({{ nextNumberForColor('blue') }})</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-team-preset btn-team-preset--red"
+                        title="Añadir jugador numerado de Equipo B"
+                        @click="addTeamPlayer('red', 'B')"
+                    >
+                        <i class="fa fa-user fa-width-auto" aria-hidden="true"></i>
+                        <span>+ Equipo B ({{ nextNumberForColor('red') }})</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-team-preset btn-team-preset--yellow"
+                        title="Añadir Portero"
+                        @click="addGoalkeeper"
+                    >
+                        <i class="fa fa-shield fa-width-auto" aria-hidden="true"></i>
+                        <span>+ Portero</span>
+                    </button>
+                </div>
+
+                <div class="field-toolbar" role="toolbar" aria-label="Figuras y simbología de cancha">
+                    <button
+                        v-for="tool in tools"
+                        :key="tool.key"
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        @click="addItem(tool)"
+                    >
+                        <i :class="tool.icon" aria-hidden="true"></i>
+                        <span>{{ tool.label }}</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        :disabled="!selectedKey"
+                        @click="removeSelected"
+                    >
+                        <i class="fa fa-trash fa-width-auto" aria-hidden="true"></i>
+                        <span>Eliminar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controles de Edición de Selección (Texto, Rotación, Duplicar) -->
+            <div v-if="selectedItem" class="field-selected-controls">
+                <label v-if="selectedItemAllowsLabel" class="field-text-input">
+                    {{ selectedItem?.type === 'player_token' ? 'Número' : 'Texto' }}
+                    <input :value="selectedItem.label" type="text" class="form-control form-control-sm" @input="updateSelectedLabel">
+                </label>
+
+                <div v-if="selectedItemIsRotatable" class="field-arrow-controls" aria-label="Orientación del elemento">
+                    <span>Orientación ({{ Math.round(selectedItem.rotation || 0) }}°)</span>
+                    <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelected(-15)">
+                        <i class="fa fa-rotate-left fa-width-auto" aria-hidden="true"></i>
+                        <span>-15°</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelected(15)">
+                        <i class="fa fa-rotate-right fa-width-auto" aria-hidden="true"></i>
+                        <span>+15°</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="resetSelectedRotation">0°</button>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm ms-auto"
+                    title="Duplicar elemento seleccionado (Ctrl+D)"
+                    @click="duplicateSelected"
+                >
+                    <i class="fa fa-copy fa-width-auto" aria-hidden="true"></i>
+                    <span>Duplicar</span>
+                </button>
+            </div>
+
+            <!-- Cancha de Fútbol Vectorial Profesional -->
+            <div class="field-canvas-wrapper">
+                <svg
+                    ref="svgRef"
+                    class="soccer-field"
+                    viewBox="0 0 100 64"
+                    role="img"
+                    aria-label="Cancha editable"
+                    @pointerdown="handleCanvasPointerDown"
+                    @pointermove="moveSelected"
+                    @pointerup="stopCanvasInteraction"
+                    @pointerleave="stopCanvasInteraction"
+                    @pointercancel="stopCanvasInteraction"
+                    @lostpointercapture="stopCanvasInteraction"
+                    @dragstart.prevent
+                >
+                    <defs>
+                        <!-- Patrón de franjas de corte de césped profesional -->
+                        <pattern
+                            id="fieldGrassStripes"
+                            width="10"
+                            height="64"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <rect x="0" y="0" width="5" height="64" class="field-grass-stripe-a" />
+                            <rect x="5" y="0" width="5" height="64" class="field-grass-stripe-b" />
+                        </pattern>
+                    </defs>
+
+                    <!-- Base de cancha con franjas de césped -->
+                    <rect x="1" y="1" width="98" height="62" rx="1.5" class="field-border" />
+                    <rect x="1" y="1" width="98" height="62" rx="1.5" fill="url(#fieldGrassStripes)" class="field-grass-pattern" />
+
+                    <!-- Cuadrantes de tiro de esquina reglamentarios (Corner Arcs) -->
+                    <path d="M 1 3.2 A 2.2 2.2 0 0 0 3.2 1" class="field-line fill-none" />
+                    <path d="M 1 60.8 A 2.2 2.2 0 0 1 3.2 63" class="field-line fill-none" />
+                    <path d="M 96.8 1 A 2.2 2.2 0 0 0 99 3.2" class="field-line fill-none" />
+                    <path d="M 96.8 63 A 2.2 2.2 0 0 1 99 60.8" class="field-line fill-none" />
+
+                    <!-- Línea de medio campo y Círculo central -->
+                    <line x1="50" y1="1" x2="50" y2="63" class="field-line" />
+                    <circle cx="50" cy="32" r="9" class="field-line fill-none" />
+                    <circle cx="50" cy="32" r="1" class="field-dot" />
+
+                    <!-- Áreas de penal (18 yardas) -->
+                    <rect x="1" y="18" width="16" height="28" class="field-line fill-none" />
+                    <rect x="83" y="18" width="16" height="28" class="field-line fill-none" />
+
+                    <!-- Áreas de meta / chica (6 yardas) -->
+                    <rect x="1" y="24" width="6" height="16" class="field-line fill-none" />
+                    <rect x="93" y="24" width="6" height="16" class="field-line fill-none" />
+
+                    <!-- Puntos de penal -->
+                    <circle cx="11" cy="32" r="1" class="field-dot" />
+                    <circle cx="89" cy="32" r="1" class="field-dot" />
+
+                    <!-- Medialunas de área penal (Penalty Arcs) reglamentarias -->
+                    <path d="M 17 25.29 A 9 9 0 0 1 17 38.71" class="field-line fill-none" />
+                    <path d="M 83 25.29 A 9 9 0 0 0 83 38.71" class="field-line fill-none" />
+
+                    <!-- Porterías con red en los extremos -->
+                    <g class="field-goals">
+                        <path d="M 1 27 L 0.3 27.5 L 0.3 36.5 L 1 37" class="goal-net" />
+                        <line x1="1" y1="27" x2="1" y2="37" class="goal-post" />
+
+                        <path d="M 99 27 L 99.7 27.5 L 99.7 36.5 L 99 37" class="goal-net" />
+                        <line x1="99" y1="27" x2="99" y2="37" class="goal-post" />
+                    </g>
+
+                    <!-- Elementos Tácticos -->
+                    <g
+                        v-for="(item, index) in items"
+                        :key="itemKey(item, index)"
+                        class="field-item"
+                        :class="{ selected: itemKey(item, index) === selectedKey, 'field-item--freehand': item.type === 'freehand' }"
+                        tabindex="0"
+                        @pointerdown.stop="handleItemPointerDown(item, index, $event)"
+                        @click.stop="selectItem(item, index)"
+                    >
+                        <circle v-if="item.type === 'player'" :cx="item.x" :cy="item.y" r="2.8" class="player" :style="{ fill: itemColor(item) }" />
+
+                        <g v-else-if="item.type === 'player_token'">
+                            <circle :cx="item.x" :cy="item.y" r="3.4" class="player-token" :style="{ fill: itemColor(item) }" />
+                            <circle :cx="item.x" :cy="item.y" r="2.7" class="player-token-rim" />
+                            <text :x="item.x" :y="item.y" class="player-token-label">{{ item.label || '1' }}</text>
+                        </g>
+
+                        <path v-else-if="item.type === 'cone'" :d="conePath()" :transform="localElementTransform(item)" class="cone" :style="{ fill: itemColor(item) }" />
+
+                        <g v-else-if="item.type === 'ball'">
+                            <circle :cx="item.x" :cy="item.y" r="2.2" class="ball" :style="{ fill: itemColor(item) }" />
+                            <circle :cx="item.x" :cy="item.y" r="0.7" class="ball-center" />
+                        </g>
+
+                        <circle v-else-if="item.type === 'hoop'" :cx="item.x" :cy="item.y" r="3.2" class="hoop" :style="{ stroke: itemColor(item) }" />
+
+                        <g v-else-if="item.type === 'agility_hurdle'" :transform="localElementTransform(item)">
+                            <path d="M -4.2 2.5 L -2.8 -2.5 L 2.8 -2.5 L 4.2 2.5" class="hurdle-frame" :style="{ stroke: itemColor(item) }" />
+                            <line x1="-3" y1="-0.7" x2="3" y2="-0.7" class="hurdle-bar" :style="{ stroke: itemColor(item) }" />
+                            <line x1="-2.5" y1="2.5" x2="2.5" y2="2.5" class="hurdle-base" :style="{ stroke: itemColor(item) }" />
+                        </g>
+
+                        <g v-else-if="item.type === 'stick'" :transform="localElementTransform(item)">
+                            <line x1="-5" y1="0" x2="5" y2="0" class="training-stick" :style="{ stroke: itemColor(item) }" />
+                            <circle cx="-5" cy="0" r="0.8" class="training-stick-end" :style="{ fill: itemColor(item) }" />
+                            <circle cx="5" cy="0" r="0.8" class="training-stick-end" :style="{ fill: itemColor(item) }" />
+                        </g>
+
+                        <g v-else-if="item.type === 'arrow'" :transform="localElementTransform(item)">
+                            <line x1="-4" y1="2.4" x2="3.15" y2="-1.9" class="arrow-line" :style="{ stroke: itemColor(item) }" />
+                            <path :d="arrowHeadPath()" class="arrow-head" :style="{ fill: itemColor(item) }" />
+                        </g>
+
+                        <g v-else-if="item.type === 'pass'" :transform="localElementTransform(item)">
+                            <line x1="-5" y1="0" x2="4" y2="0" class="tactical-line" :style="{ stroke: itemColor(item) }" />
+                            <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                        </g>
+
+                        <g v-else-if="item.type === 'dribble'" :transform="localElementTransform(item)">
+                            <polyline :points="dribblePoints()" class="tactical-line" :style="{ stroke: itemColor(item) }" />
+                            <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                        </g>
+
+                        <g v-else-if="item.type === 'off_ball_run'" :transform="localElementTransform(item)">
+                            <line x1="-5" y1="0" x2="4" y2="0" class="tactical-line tactical-line--dashed" :style="{ stroke: itemColor(item) }" />
+                            <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                        </g>
+
+                        <g v-else-if="item.type === 'cross'" :transform="localElementTransform(item)">
+                            <path :d="crossPath()" class="tactical-line tactical-line--curve" :style="{ stroke: itemColor(item) }" />
+                            <path :d="crossArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                        </g>
+
+                        <g v-else-if="item.type === 'xmark'" :transform="`translate(${Number(item.x)} ${Number(item.y)})`">
+                            <line x1="-1.3" y1="-1.3" x2="1.3" y2="1.3" class="xmark-line" :style="{ stroke: itemColor(item) }" />
+                            <line x1="1.3" y1="-1.3" x2="-1.3" y2="1.3" class="xmark-line" :style="{ stroke: itemColor(item) }" />
+                        </g>
+
+                        <path v-else-if="item.type === 'freehand'" :d="freehandPath(item)" class="freehand-line" :style="{ stroke: itemColor(item) }" />
+
+                        <text v-else :x="item.x" :y="item.y" class="field-label" :style="{ fill: itemColor(item) }">{{ item.label || 'Texto' }}</text>
+
+                        <!-- Controles de Rotación para accesorios (cono, valla, bastón) -->
+                        <g
+                            v-if="itemKey(item, index) === selectedKey && isRotatable(item) && !isDirectional(item)"
+                            class="rotation-control"
+                            @pointerdown.stop="startRotation(item, index, $event)"
+                        >
+                            <line :x1="item.x" :y1="item.y - 7" :x2="item.x" :y2="item.y - 5" class="rotation-line" />
+                            <circle :cx="item.x" :cy="item.y - 7" r="1.5" class="rotation-handle" />
+                            <circle :cx="item.x" :cy="item.y - 7" r="3.2" class="rotation-hit-area" />
+                        </g>
+
+                        <!-- Manipulador en la punta para flechas y trayectorias -->
+                        <g
+                            v-if="itemKey(item, index) === selectedKey && isDirectional(item)"
+                            class="tip-handle-control"
+                            @pointerdown.stop="startTipDirection(item, index, $event)"
+                        >
+                            <circle
+                                :cx="getArrowTipPoint(item).x"
+                                :cy="getArrowTipPoint(item).y"
+                                r="1.5"
+                                class="tip-handle-circle"
+                            />
+                            <circle
+                                :cx="getArrowTipPoint(item).x"
+                                :cy="getArrowTipPoint(item).y"
+                                r="3.4"
+                                class="tip-handle-hit-area"
+                            />
+                        </g>
+                    </g>
+                </svg>
+            </div>
         </template>
     </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FileInputImage from '@/components/form/FileInputImage.vue'
 
 const props = defineProps({
@@ -291,16 +477,75 @@ const tools = [
 ]
 
 const items = computed({
-    get: () => props.modelValue,
+    get: () => (props.modelValue || []).map((item) => ({
+        ...item,
+        x: item.x !== undefined && item.x !== null ? Number(item.x) : item.x,
+        y: item.y !== undefined && item.y !== null ? Number(item.y) : item.y,
+        ...(item.rotation !== undefined && item.rotation !== null ? { rotation: Number(item.rotation) } : {}),
+    })),
     set: (value) => emit('update:modelValue', value),
 })
+
+// Historial Undo / Redo
+const history = ref([])
+const historyIndex = ref(-1)
+const isPerformingHistoryAction = ref(false)
+
+function pushHistoryState(newItems) {
+    if (isPerformingHistoryAction.value) {
+        return
+    }
+
+    const cloned = JSON.parse(JSON.stringify(newItems))
+    history.value = history.value.slice(0, historyIndex.value + 1)
+    history.value.push(cloned)
+
+    if (history.value.length > 30) {
+        history.value.shift()
+    } else {
+        historyIndex.value++
+    }
+}
+
+watch(() => props.modelValue, (val) => {
+    if (!history.value.length && val && val.length) {
+        history.value = [JSON.parse(JSON.stringify(val))]
+        historyIndex.value = 0
+    }
+}, { immediate: true })
+
+const canUndo = computed(() => historyIndex.value > 0)
+const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+
+function undo() {
+    if (!canUndo.value) return
+    isPerformingHistoryAction.value = true
+    historyIndex.value--
+    items.value = JSON.parse(JSON.stringify(history.value[historyIndex.value]))
+    selectedKey.value = null
+    isPerformingHistoryAction.value = false
+}
+
+function redo() {
+    if (!canRedo.value) return
+    isPerformingHistoryAction.value = true
+    historyIndex.value++
+    items.value = JSON.parse(JSON.stringify(history.value[historyIndex.value]))
+    selectedKey.value = null
+    isPerformingHistoryAction.value = false
+}
+
+function commitItemsChange(newItems) {
+    items.value = newItems
+    pushHistoryState(newItems)
+}
 
 const selectedItem = computed(() => items.value.find((item, index) => itemKey(item, index) === selectedKey.value))
 const selectedItemAllowsLabel = computed(() => ['player_token', 'text'].includes(selectedItem.value?.type))
 const selectedItemIsRotatable = computed(() => isRotatable(selectedItem.value))
 const imageModelValue = computed(() => props.imageFile || props.imageUrl || null)
 const activeModeHelp = computed(() => ({
-    select: 'Selecciona y arrastra figuras. Usa el círculo superior o Shift + arrastre para girar los elementos compatibles.',
+    select: 'Selecciona y arrastra figuras. Usa el círculo superior o la punta de las flechas para girar los elementos compatibles.',
     pencil: 'Dibuja trazos libres sobre la cancha. Los trazos se guardan con la planificación.',
     eraser: 'Borra trazos completos hechos con el lápiz al tocarlos; no borra partes del trazo ni elimina jugadores, flechas, fichas o texto.',
 })[activeMode.value])
@@ -335,10 +580,11 @@ function setSelectedColor(color) {
         return
     }
 
-    items.value = items.value.map((item, index) => itemKey(item, index) === selectedKey.value
+    const updated = items.value.map((item, index) => itemKey(item, index) === selectedKey.value
         ? { ...item, color }
         : item
     )
+    commitItemsChange(updated)
 }
 
 function itemKey(item, index) {
@@ -347,6 +593,57 @@ function itemKey(item, index) {
 
 function makeId() {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function nextNumberForColor(color) {
+    const numbersInColor = items.value
+        .filter((item) => item.type === 'player_token' && item.color === color)
+        .map((item) => parseInt(item.label, 10))
+        .filter((n) => !isNaN(n) && n > 0)
+
+    if (!numbersInColor.length) {
+        return 1
+    }
+    return Math.max(...numbersInColor) + 1
+}
+
+function addTeamPlayer(color, teamCode) {
+    setActiveMode('select')
+    selectedColor.value = color
+
+    const nextNum = String(nextNumberForColor(color))
+    const existingCount = items.value.filter((i) => i.color === color).length
+    const startX = teamCode === 'A' ? 30 + (existingCount % 4) * 5 : 70 - (existingCount % 4) * 5
+    const startY = 18 + ((existingCount * 8) % 36)
+
+    const item = {
+        id: makeId(),
+        type: 'player_token',
+        x: Math.max(10, Math.min(90, startX)),
+        y: Math.max(10, Math.min(54, startY)),
+        label: nextNum,
+        color,
+    }
+
+    commitItemsChange([...items.value, item])
+    selectedKey.value = item.id
+}
+
+function addGoalkeeper() {
+    setActiveMode('select')
+    selectedColor.value = 'yellow'
+
+    const item = {
+        id: makeId(),
+        type: 'player_token',
+        x: 10,
+        y: 32,
+        label: '1',
+        color: 'yellow',
+    }
+
+    commitItemsChange([...items.value, item])
+    selectedKey.value = item.id
 }
 
 function addItem(tool) {
@@ -362,8 +659,33 @@ function addItem(tool) {
         ...(rotatableTypes.includes(tool.type) ? { rotation: 0 } : {}),
     }
 
-    items.value = [...items.value, item]
+    commitItemsChange([...items.value, item])
     selectedKey.value = item.id
+}
+
+function duplicateSelected() {
+    if (!selectedItem.value) return
+
+    const original = selectedItem.value
+    const cloned = {
+        ...JSON.parse(JSON.stringify(original)),
+        id: makeId(),
+        x: Math.min(94, (original.x ?? 50) + 4),
+        y: Math.min(60, (original.y ?? 32) + 4),
+    }
+
+    if (cloned.type === 'player_token' && !isNaN(parseInt(cloned.label, 10))) {
+        cloned.label = String(nextNumberForColor(cloned.color || 'blue'))
+    }
+
+    commitItemsChange([...items.value, cloned])
+    selectedKey.value = cloned.id
+}
+
+function clearAllItems() {
+    if (!items.value.length) return
+    commitItemsChange([])
+    selectedKey.value = null
 }
 
 function setActiveMode(mode) {
@@ -379,19 +701,21 @@ function setActiveMode(mode) {
 }
 
 function removeSelected() {
-    items.value = items.value.filter((item, index) => itemKey(item, index) !== selectedKey.value)
+    const updated = items.value.filter((item, index) => itemKey(item, index) !== selectedKey.value)
+    commitItemsChange(updated)
     selectedKey.value = null
 }
 
 function updateSelectedLabel(event) {
-    items.value = items.value.map((item, index) => itemKey(item, index) === selectedKey.value
+    const updated = items.value.map((item, index) => itemKey(item, index) === selectedKey.value
         ? { ...item, label: event.target.value }
         : item
     )
+    commitItemsChange(updated)
 }
 
 function rotateSelected(delta) {
-    items.value = items.value.map((item, index) => {
+    const updated = items.value.map((item, index) => {
         if (itemKey(item, index) !== selectedKey.value || !isRotatable(item)) {
             return item
         }
@@ -401,17 +725,23 @@ function rotateSelected(delta) {
             rotation: normalizeRotation(Number(item.rotation ?? 0) + delta),
         }
     })
+    commitItemsChange(updated)
 }
 
 function resetSelectedRotation() {
-    items.value = items.value.map((item, index) => itemKey(item, index) === selectedKey.value && isRotatable(item)
+    const updated = items.value.map((item, index) => itemKey(item, index) === selectedKey.value && isRotatable(item)
         ? { ...item, rotation: 0 }
         : item
     )
+    commitItemsChange(updated)
 }
 
 function isRotatable(item) {
     return Boolean(item && rotatableTypes.includes(item.type))
+}
+
+function isDirectional(item) {
+    return Boolean(item && directionalTypes.includes(item.type))
 }
 
 function handleCanvasPointerDown(event) {
@@ -522,11 +852,16 @@ function moveSelected(event) {
 }
 
 function stopCanvasInteraction(event = null) {
+    const wasDraggingOrDrawing = dragState.value || drawingState.value || rotationState.value
     releasePointerCapture(event)
     dragState.value = null
     rotationState.value = null
     drawingState.value = null
     erasingState.value = null
+
+    if (wasDraggingOrDrawing) {
+        pushHistoryState(items.value)
+    }
 }
 
 function startRotation(item, index, event) {
@@ -541,6 +876,22 @@ function startRotation(item, index, event) {
         centerX: item.x,
         centerY: item.y,
         startAngle: angleFromCenter(item.x, item.y, point.x, point.y),
+        initialRotation: Number(item.rotation ?? 0),
+    }
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+}
+
+function startTipDirection(item, index, event) {
+    event.preventDefault()
+    const key = itemKey(item, index)
+
+    selectedKey.value = key
+    rotationState.value = {
+        key,
+        pointerId: event.pointerId,
+        centerX: item.x,
+        centerY: item.y,
+        isTipAiming: true,
         initialRotation: Number(item.rotation ?? 0),
     }
     event.currentTarget.setPointerCapture?.(event.pointerId)
@@ -569,7 +920,10 @@ function updateRotation(event) {
 
     let rotation = state.initialRotation
 
-    if (state.horizontal) {
+    if (state.isTipAiming) {
+        const point = eventPoint(event)
+        rotation = angleFromCenter(state.centerX, state.centerY, point.x, point.y)
+    } else if (state.horizontal) {
         rotation += (event.clientX - state.startClientX) * 0.8
     } else {
         const point = eventPoint(event)
@@ -595,6 +949,15 @@ function normalizeSignedAngle(angle) {
     if (result < -180) result += 360
 
     return result
+}
+
+function getArrowTipPoint(item) {
+    const rad = (normalizeRotation(Number(item.rotation ?? 0)) * Math.PI) / 180
+    const tipRadius = 5.2
+    return {
+        x: Number((Number(item.x ?? 50) + Math.cos(rad) * tipRadius).toFixed(2)),
+        y: Number((Number(item.y ?? 32) + Math.sin(rad) * tipRadius).toFixed(2)),
+    }
 }
 
 function startFreehand(event) {
@@ -649,7 +1012,10 @@ function eraseFreehandAtEvent(event) {
     }
 
     const point = eventPoint(event)
-    items.value = items.value.filter((item) => item.type !== 'freehand' || !freehandContainsPoint(item, point))
+    const filtered = items.value.filter((item) => item.type !== 'freehand' || !freehandContainsPoint(item, point))
+    if (filtered.length !== items.value.length) {
+        commitItemsChange(filtered)
+    }
 }
 
 function startErasing(event) {
@@ -770,7 +1136,7 @@ function distanceToSegment(point, start, end) {
 }
 
 function localElementTransform(item) {
-    return `translate(${item.x} ${item.y}) rotate(${normalizeRotation(Number(item.rotation ?? 0))})`
+    return `translate(${Number(item.x ?? 0)} ${Number(item.y ?? 0)}) rotate(${normalizeRotation(Number(item.rotation ?? 0))})`
 }
 
 function itemColor(item) {
@@ -780,6 +1146,66 @@ function itemColor(item) {
 function normalizeRotation(rotation) {
     return ((rotation % 360) + 360) % 360
 }
+
+function handleKeyDown(event) {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
+        return
+    }
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !event.shiftKey) {
+        event.preventDefault()
+        undo()
+        return
+    }
+
+    if ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === 'y' || (event.key.toLowerCase() === 'z' && event.shiftKey))) {
+        event.preventDefault()
+        redo()
+        return
+    }
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd' && selectedKey.value) {
+        event.preventDefault()
+        duplicateSelected()
+        return
+    }
+
+    if ((event.key === 'Delete' || event.key === 'Backspace') && selectedKey.value) {
+        event.preventDefault()
+        removeSelected()
+        return
+    }
+
+    if (event.key === 'Escape') {
+        selectedKey.value = null
+        return
+    }
+
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key) && selectedKey.value) {
+        event.preventDefault()
+        const step = event.shiftKey ? 2 : 0.5
+        const deltaX = event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0
+        const deltaY = event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0
+
+        const updated = items.value.map((item, index) => {
+            if (itemKey(item, index) !== selectedKey.value) return item
+            return {
+                ...item,
+                x: Math.min(97, Math.max(3, Number(((item.x ?? 50) + deltaX).toFixed(2)))),
+                y: Math.min(61, Math.max(3, Number(((item.y ?? 32) + deltaY).toFixed(2)))),
+            }
+        })
+        commitItemsChange(updated)
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeyDown)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style scoped lang="scss">
@@ -790,18 +1216,22 @@ function normalizeRotation(rotation) {
     --field-editor-label: #{color_variables.$dark};
     --field-editor-surface: #{color_variables.$white};
     --field-editor-input-bg: #{color_variables.$white};
-    --field-grass: #{color_variables.$l-success};
-    --field-grass-fill: #{color_variables.$l-success};
-    --field-line-color: #{color_variables.$m-color_14};
+    --field-grass: #2d8a4e;
+    --field-grass-stripe-a: #2d8a4e;
+    --field-grass-stripe-b: #287a45;
+    --field-grass-fill: #2d8a4e;
+    --field-line-color: rgba(255, 255, 255, 0.9);
     --field-player-color: #{color_variables.$info};
     --field-cone-color: #{color_variables.$warning};
     --field-ball-color: #{color_variables.$m-color_23};
     --field-arrow-color: #{color_variables.$danger};
     --field-xmark-color: #{color_variables.$m-color_23};
-    --field-label-color: #{color_variables.$m-color_23};
-    --field-selected-shadow: #{color_variables.$m-color_23};
+    --field-label-color: #{color_variables.$white};
+    --field-selected-shadow: #38bdf8;
+    --field-panel-bg: #f8fafc;
     display: grid;
     gap: 0.75rem;
+    outline: none;
 }
 
 .field-editor--compact {
@@ -814,47 +1244,63 @@ function normalizeRotation(rotation) {
     --field-editor-label: #{color_variables.$m-color_4};
     --field-editor-surface: #{color_variables.$m-color_10};
     --field-editor-input-bg: #{color_variables.$m-color_19};
-    --field-grass: #{color_variables.$m-color_19};
-    --field-grass-fill: #{color_variables.$m-color_10};
-    --field-line-color: #{color_variables.$m-color_14};
+    --field-grass: #164024;
+    --field-grass-stripe-a: #164024;
+    --field-grass-stripe-b: #13361f;
+    --field-grass-fill: #164024;
+    --field-line-color: rgba(255, 255, 255, 0.75);
     --field-player-color: #{color_variables.$info};
     --field-cone-color: #{color_variables.$warning};
     --field-ball-color: #{color_variables.$m-color_3};
     --field-arrow-color: #{color_variables.$danger};
     --field-xmark-color: #{color_variables.$m-color_3};
     --field-label-color: #{color_variables.$m-color_3};
-    --field-selected-shadow: #{color_variables.$m-color_3};
+    --field-selected-shadow: #38bdf8;
+    --field-panel-bg: #{color_variables.$m-color_10};
 }
 
-.field-toolbar {
+.field-top-bar {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
 }
 
 .visual-mode-selector {
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
 }
 
-.visual-mode-selector .btn {
+.field-studio-actions {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
 }
 
 .field-drawing-tools {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-}
 
-.field-drawing-tools .btn,
-.field-toolbar .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
 }
 
 .field-mode-help {
@@ -889,6 +1335,11 @@ function normalizeRotation(rotation) {
     cursor: pointer;
     display: inline-flex;
     padding: 2px;
+    transition: transform 0.1s ease;
+
+    &:hover {
+        transform: scale(1.15);
+    }
 }
 
 .field-color-option > span {
@@ -904,39 +1355,116 @@ function normalizeRotation(rotation) {
     border-color: var(--field-selected-shadow);
 }
 
+.field-toolbar-wrapper {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.field-team-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.btn-team-preset {
+    font-weight: 600;
+
+    &--blue {
+        background-color: #2563eb;
+        border-color: #1d4ed8;
+        color: #fff;
+
+        &:hover {
+            background-color: #1d4ed8;
+            color: #fff;
+        }
+    }
+
+    &--red {
+        background-color: #dc2626;
+        border-color: #b91c1c;
+        color: #fff;
+
+        &:hover {
+            background-color: #b91c1c;
+            color: #fff;
+        }
+    }
+
+    &--yellow {
+        background-color: #d4a60f;
+        border-color: #b88d0b;
+        color: #fff;
+
+        &:hover {
+            background-color: #b88d0b;
+            color: #fff;
+        }
+    }
+}
+
+.field-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+}
+
+.field-selected-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    background: var(--field-panel-bg);
+    border: 1px solid var(--field-editor-border);
+    border-radius: 6px;
+    padding: 0.45rem 0.65rem;
+}
+
 .field-text-input {
     color: var(--field-editor-label);
-    max-width: 280px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0;
     font-size: 0.8125rem;
     font-weight: 600;
-}
 
-.field-text-input .form-control {
-    background-color: var(--field-editor-input-bg) !important;
-    border-color: var(--field-editor-border);
-    color: var(--field-editor-label) !important;
-}
-
-.field-text-input .form-control:focus {
-    background-color: var(--field-editor-input-bg) !important;
-    color: var(--field-editor-label) !important;
-    box-shadow: none;
+    .form-control {
+        background-color: var(--field-editor-input-bg) !important;
+        border-color: var(--field-editor-border);
+        color: var(--field-editor-label) !important;
+        max-width: 120px;
+    }
 }
 
 .field-arrow-controls {
     align-items: center;
     color: var(--field-editor-label);
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.35rem;
     font-size: 0.8125rem;
     font-weight: 600;
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
 }
 
-.field-arrow-controls .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
+.field-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .soccer-field {
@@ -944,11 +1472,12 @@ function normalizeRotation(rotation) {
     aspect-ratio: 100 / 64;
     min-height: 170px;
     border: 1px solid var(--field-editor-border);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--field-grass);
     touch-action: none;
     user-select: none;
     -webkit-user-drag: none;
+    display: block;
 }
 
 .field-editor--compact .soccer-field {
@@ -959,11 +1488,23 @@ function normalizeRotation(rotation) {
 .field-border,
 .field-line {
     stroke: var(--field-line-color);
-    stroke-width: 0.45;
+    stroke-width: 0.48;
 }
 
 .field-border {
     fill: var(--field-grass-fill);
+}
+
+.field-grass-stripe-a {
+    fill: var(--field-grass-stripe-a);
+}
+
+.field-grass-stripe-b {
+    fill: var(--field-grass-stripe-b);
+}
+
+.field-grass-pattern {
+    pointer-events: none;
 }
 
 .fill-none {
@@ -972,6 +1513,19 @@ function normalizeRotation(rotation) {
 
 .field-dot {
     fill: var(--field-line-color);
+}
+
+.goal-post {
+    stroke: #ffffff;
+    stroke-width: 0.7;
+    stroke-linecap: round;
+}
+
+.goal-net {
+    fill: rgba(255, 255, 255, 0.12);
+    stroke: rgba(255, 255, 255, 0.45);
+    stroke-width: 0.35;
+    stroke-dasharray: 0.6 0.6;
 }
 
 .field-item {
@@ -986,80 +1540,65 @@ function normalizeRotation(rotation) {
     pointer-events: none;
 }
 
-.field-item.selected .player,
-.field-item.selected .player-token,
-.field-item.selected .cone,
-.field-item.selected .hurdle-frame,
-.field-item.selected .hurdle-bar,
-.field-item.selected .hurdle-base,
-.field-item.selected .training-stick,
-.field-item.selected .ball,
-.field-item.selected .hoop,
-.field-item.selected .arrow-line,
-.field-item.selected .tactical-line,
-.field-item.selected .xmark-line,
-.field-item.selected .freehand-line,
-.field-item.selected .field-label,
-.field-item.selected .player-token-label {
-    filter: drop-shadow(0 0 1.8px var(--field-selected-shadow));
+.field-item.selected {
+    .player,
+    .player-token,
+    .cone,
+    .hurdle-frame,
+    .hurdle-bar,
+    .hurdle-base,
+    .training-stick,
+    .ball,
+    .hoop,
+    .arrow-line,
+    .tactical-line,
+    .xmark-line,
+    .freehand-line,
+    .field-label,
+    .player-token-label {
+        filter: drop-shadow(0 0 2px var(--field-selected-shadow));
+    }
 }
 
 .player {
-    fill: var(--field-player-color);
+    stroke: #ffffff;
+    stroke-width: 0.35;
 }
 
-.cone {
-    fill: var(--field-cone-color);
-}
-
-.hurdle-frame,
-.hurdle-base {
-    fill: none;
-    stroke: var(--field-cone-color);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 0.8;
-}
-
-.hurdle-bar {
-    stroke: var(--field-cone-color);
-    stroke-linecap: round;
-    stroke-width: 1.15;
-}
-
-.training-stick {
-    stroke: #d4a60f;
-    stroke-linecap: round;
-    stroke-width: 1.1;
-}
-
-.training-stick-end {
-    fill: #d4a60f;
-}
-
-.rotation-control {
-    cursor: grab;
-}
-
-.rotation-line {
-    stroke: var(--field-selected-shadow);
-    stroke-dasharray: 0.8 0.8;
-    stroke-width: 0.45;
-}
-
-.rotation-handle {
-    fill: var(--field-editor-surface);
-    stroke: var(--field-selected-shadow);
+.player-token {
+    stroke: #ffffff;
     stroke-width: 0.55;
 }
 
-.rotation-hit-area {
-    fill: transparent;
-    pointer-events: all;
+.player-token-rim {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.35);
+    stroke-width: 0.25;
+}
+
+.player-token-label {
+    fill: #ffffff;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 3.5px;
+    font-weight: 800;
+    dominant-baseline: middle;
+    text-anchor: middle;
+    pointer-events: none;
+    text-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.6);
+}
+
+.cone {
+    stroke: rgba(0, 0, 0, 0.1);
+    stroke-width: 0.2;
 }
 
 .ball {
-    fill: var(--field-ball-color);
+    stroke: #111827;
+    stroke-width: 0.3;
+}
+
+.ball-center {
+    fill: #111827;
 }
 
 .hoop {
@@ -1067,14 +1606,31 @@ function normalizeRotation(rotation) {
     stroke-width: 1.05;
 }
 
+.hurdle-frame,
+.hurdle-base {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 0.8;
+}
+
+.hurdle-bar {
+    stroke-linecap: round;
+    stroke-width: 1.15;
+}
+
+.training-stick {
+    stroke-linecap: round;
+    stroke-width: 1.1;
+}
+
 .arrow-line {
-    stroke: var(--field-arrow-color);
     stroke-width: 1.1;
     stroke-linecap: round;
 }
 
 .arrow-head {
-    fill: var(--field-arrow-color);
+    stroke: none;
 }
 
 .tactical-line {
@@ -1098,31 +1654,58 @@ function normalizeRotation(rotation) {
 
 .freehand-line {
     fill: none;
-    stroke: var(--field-ball-color);
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.1;
 }
 
 .xmark-line {
-    stroke: var(--field-xmark-color);
     stroke-linecap: round;
     stroke-width: 1.05;
 }
 
 .field-label {
-    fill: var(--field-label-color);
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
     font-size: 4px;
     font-weight: 700;
     dominant-baseline: middle;
     text-anchor: middle;
+    text-shadow: 0 0.5px 2px rgba(0, 0, 0, 0.7);
 }
 
-.player-token-label {
-    fill: #{color_variables.$white};
-    font-size: 3.5px;
-    font-weight: 800;
-    dominant-baseline: middle;
-    text-anchor: middle;
+.rotation-control {
+    cursor: grab;
+}
+
+.rotation-line {
+    stroke: var(--field-selected-shadow);
+    stroke-dasharray: 0.8 0.8;
+    stroke-width: 0.45;
+}
+
+.rotation-handle {
+    fill: var(--field-editor-surface);
+    stroke: var(--field-selected-shadow);
+    stroke-width: 0.55;
+}
+
+.rotation-hit-area {
+    fill: transparent;
+    pointer-events: all;
+}
+
+.tip-handle-control {
+    cursor: crosshair;
+}
+
+.tip-handle-circle {
+    fill: #38bdf8;
+    stroke: #ffffff;
+    stroke-width: 0.55;
+}
+
+.tip-handle-hit-area {
+    fill: transparent;
+    pointer-events: all;
 }
 </style>

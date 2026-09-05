@@ -393,6 +393,132 @@ describe('SoccerFieldDiagramEditor', () => {
         expect(value[1].points).toEqual([{ x: 22, y: 24 }])
         expect(wrapper.find('.field-item--freehand').exists()).toBe(true)
     })
+
+    it('adds team players with auto-incrementing numbers and goalkeeper', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Equipo A')).trigger('click')
+        let value = latestModelValue(wrapper)
+        expect(value).toHaveLength(1)
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'player_token',
+            color: 'blue',
+            label: '1',
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Equipo A')).trigger('click')
+        value = latestModelValue(wrapper)
+        expect(value).toHaveLength(2)
+        expect(value[1]).toEqual(expect.objectContaining({
+            type: 'player_token',
+            color: 'blue',
+            label: '2',
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Equipo B')).trigger('click')
+        value = latestModelValue(wrapper)
+        expect(value).toHaveLength(3)
+        expect(value[2]).toEqual(expect.objectContaining({
+            type: 'player_token',
+            color: 'red',
+            label: '1',
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Portero')).trigger('click')
+        value = latestModelValue(wrapper)
+        expect(value).toHaveLength(4)
+        expect(value[3]).toEqual(expect.objectContaining({
+            type: 'player_token',
+            color: 'yellow',
+            label: '1',
+        }))
+    })
+
+    it('duplicates a selected item and supports undo/redo', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Balón')).trigger('click')
+        let value = latestModelValue(wrapper)
+        expect(value).toHaveLength(1)
+        await wrapper.setProps({ modelValue: value })
+
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Duplicar')).trigger('click')
+        value = latestModelValue(wrapper)
+        expect(value).toHaveLength(2)
+        expect(value[1].type).toBe('ball')
+        await wrapper.setProps({ modelValue: value })
+
+        // Deshacer
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Deshacer')).trigger('click')
+        value = latestModelValue(wrapper)
+        expect(value).toHaveLength(1)
+        await wrapper.setProps({ modelValue: value })
+
+        // Rehacer
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Rehacer')).trigger('click')
+        value = latestModelValue(wrapper)
+        expect(value).toHaveLength(2)
+    })
+
+    it('renders directional tip handle and regulation field pitch markings', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+
+        // Regulation markings
+        expect(wrapper.find('#fieldGrassStripes').exists()).toBe(true)
+        expect(wrapper.findAll('.goal-post')).toHaveLength(2)
+        expect(wrapper.findAll('.goal-net')).toHaveLength(2)
+
+        // Directional item has only 1 handle (tip handle) and no separate top rotation pin
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Pase')).trigger('click')
+        let value = latestModelValue(wrapper)
+        await wrapper.setProps({ modelValue: value })
+
+        expect(wrapper.find('.tip-handle-control').exists()).toBe(true)
+        expect(wrapper.find('.tip-handle-circle').exists()).toBe(true)
+        expect(wrapper.find('.rotation-control').exists()).toBe(false)
+
+        // Training equipment has only 1 handle (top rotation pin) and no tip handle
+        await wrapper.findAll('button').find((btn) => btn.text().includes('Cono')).trigger('click')
+        value = latestModelValue(wrapper)
+        await wrapper.setProps({ modelValue: value })
+
+        expect(wrapper.find('.rotation-control').exists()).toBe(true)
+        expect(wrapper.find('.tip-handle-control').exists()).toBe(false)
+    })
+
+    it('renders xmark with normal dimensions even when loaded with string coordinates', () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [
+                    { type: 'xmark', x: '50', y: '32', color: 'blue' },
+                ],
+            },
+        })
+
+        const xmarkGroup = wrapper.find('.field-item g')
+        expect(xmarkGroup.exists()).toBe(true)
+        expect(xmarkGroup.attributes('transform')).toBe('translate(50 32)')
+
+        const lines = wrapper.findAll('.xmark-line')
+        expect(lines).toHaveLength(2)
+        expect(lines[0].attributes('x1')).toBe('-1.3')
+        expect(lines[0].attributes('x2')).toBe('1.3')
+    })
 })
 
 function makePointerEvent(name, values = {}) {
